@@ -11,7 +11,7 @@ COPY . ./
 RUN dotnet publish -c Release -o out
 
 # 2. Çalıştırma Aşaması (Daha hafif bir imaj)
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /app/out .
 
@@ -19,5 +19,5 @@ COPY --from=build /app/out .
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 
-# Uygulamayı başlatıyoruz (dll adı csproj adınızla aynı olur)
+# Uygulamayı başlatıyoruz
 ENTRYPOINT ["dotnet", "YarimKalanlar.dll"]
