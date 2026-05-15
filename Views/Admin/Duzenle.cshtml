@@ -1,0 +1,105 @@
+@model YarimKalanlar.Models.Haber
+@{
+    ViewData["Title"] = "Haber Düzenle";
+}
+
+<section class="container form-section">
+    <div class="form-header">
+        <h1>Haber Düzenle</h1>
+        <a asp-action="Panel" class="form-geri">← Panele Dön</a>
+    </div>
+
+    <form asp-action="Duzenle" method="post" enctype="multipart/form-data" class="haber-form">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="YayinTarihi" />
+        <input type="hidden" asp-for="Goruntulenme" />
+        <input type="hidden" asp-for="GorselUrl" />
+        <input type="hidden" asp-for="Kategori" />
+
+        <div asp-validation-summary="ModelOnly" class="form-hata"></div>
+
+        <div class="form-grup">
+            <label asp-for="Baslik">Başlık</label>
+            <input asp-for="Baslik" required />
+            <span asp-validation-for="Baslik" class="form-uyari"></span>
+        </div>
+
+        <div class="form-grup">
+            <label asp-for="Spot">Spot</label>
+            <textarea asp-for="Spot" rows="2" required></textarea>
+            <span asp-validation-for="Spot" class="form-uyari"></span>
+        </div>
+
+        <div class="form-grup">
+            <label asp-for="Icerik">İçerik</label>
+            <textarea asp-for="Icerik" rows="12" required></textarea>
+            <span asp-validation-for="Icerik" class="form-uyari"></span>
+        </div>
+
+        <div class="form-grup">
+            <label asp-for="Yazar">Yazar</label>
+            <input asp-for="Yazar" />
+        </div>
+
+        <div class="form-grup">
+            <label>Mevcut Görsel</label>
+            @if (!string.IsNullOrEmpty(Model.GorselUrl))
+            {
+                <div class="mevcut-gorsel">
+                    <img src="@Model.GorselUrl" alt="Mevcut" />
+                    <label class="gorsel-sil-onay">
+                        <input type="checkbox" name="gorselSil" value="true" />
+                        Bu görseli kaldır
+                    </label>
+                </div>
+            }
+            else
+            {
+                <p class="form-yardim" style="margin-bottom:10px;">Bu habere henüz görsel eklenmemiş.</p>
+            }
+        </div>
+
+        <div class="form-grup">
+            <label for="gorselDosya">Yeni Görsel Yükle</label>
+            <div class="dosya-yukle">
+                <input type="file" id="gorselDosya" name="gorselDosya" accept="image/png, image/jpeg, image/gif, image/webp" />
+                <div id="onIzlemeAlani" class="on-izleme" style="display:none;">
+                    <img id="onIzleme" src="" alt="Önizleme" />
+                    <button type="button" id="kaldirBtn" class="btn-mini">Kaldır</button>
+                </div>
+            </div>
+            <small class="form-yardim">Yeni dosya yüklenirse mevcut görselin yerini alır. JPG, PNG, GIF veya WebP — Maksimum 5MB</small>
+        </div>
+
+        <div class="form-aksiyon">
+            <button type="submit" class="form-btn">Değişiklikleri Kaydet</button>
+            <a asp-action="Panel" class="btn-iptal">Vazgeç</a>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <script>
+        const input = document.getElementById('gorselDosya');
+        const onIzleme = document.getElementById('onIzleme');
+        const alan = document.getElementById('onIzlemeAlani');
+        const kaldir = document.getElementById('kaldirBtn');
+
+        input.addEventListener('change', (e) => {
+            const dosya = e.target.files[0];
+            if (!dosya) { alan.style.display = 'none'; return; }
+            const okuyucu = new FileReader();
+            okuyucu.onload = (ev) => {
+                onIzleme.src = ev.target.result;
+                alan.style.display = 'flex';
+            };
+            okuyucu.readAsDataURL(dosya);
+        });
+
+        kaldir.addEventListener('click', () => {
+            input.value = '';
+            alan.style.display = 'none';
+        });
+    </script>
+}

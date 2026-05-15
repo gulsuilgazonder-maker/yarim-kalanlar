@@ -1,0 +1,80 @@
+@model YarimKalanlar.Models.Haber
+@{
+    ViewData["Title"] = Model.Baslik;
+    var ilgili = ViewBag.IlgiliHaberler as List<YarimKalanlar.Models.Haber> ?? new List<YarimKalanlar.Models.Haber>();
+}
+
+<article class="haber-detay">
+    <div class="container detay-container">
+        <nav class="breadcrumb">
+            <a asp-controller="Home" asp-action="Index">Ana Sayfa</a>
+            <span>›</span>
+            <span class="breadcrumb-current">Haber</span>
+        </nav>
+
+        <header class="detay-header">
+            <h1 class="detay-baslik">@Model.Baslik</h1>
+            <p class="detay-spot">@Model.Spot</p>
+
+            <div class="detay-meta">
+                <div class="meta-yazar">
+                    <span class="meta-avatar">@Model.Yazar.Substring(0, 1).ToUpper()</span>
+                    <div>
+                        <strong>@Model.Yazar</strong>
+                        <small>@Model.YayinTarihi.ToString("d MMMM yyyy, HH:mm", new System.Globalization.CultureInfo("tr-TR"))</small>
+                    </div>
+                </div>
+                <div class="meta-stats">
+                    <span class="meta-views">👁 @Model.Goruntulenme.ToString("N0", new System.Globalization.CultureInfo("tr-TR")) görüntülenme</span>
+                </div>
+            </div>
+        </header>
+
+        @if (!string.IsNullOrEmpty(Model.GorselUrl))
+        {
+            <figure class="detay-gorsel">
+                <img src="@Model.GorselUrl" alt="@Model.Baslik" />
+            </figure>
+        }
+
+        <div class="detay-icerik">
+            @foreach (var paragraf in Model.Icerik.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            {
+                <p>@paragraf.Trim()</p>
+            }
+        </div>
+
+        <aside class="acil-yardim-kutusu">
+            <h4>Şiddete maruz kaldıysanız ya da tanık olduysanız</h4>
+            <p>Yardım almak için aşağıdaki hatları arayabilirsiniz. Başvurularınız gizlidir.</p>
+            <div class="acil-numaralar">
+                <span><strong>155</strong> Polis İmdat</span>
+                <span><strong>183</strong> Alo Sosyal Destek</span>
+                <span><strong>KADES</strong> Mobil Uygulama</span>
+            </div>
+        </aside>
+
+        @if (ilgili.Any())
+        {
+            <section class="ilgili-haberler">
+                <h3>İlgili Haberler</h3>
+                <div class="ilgili-grid">
+                    @foreach (var h in ilgili)
+                    {
+                        <a asp-controller="Haber" asp-action="Detay" asp-route-id="@h.Id" class="ilgili-kart">
+                            @if (!string.IsNullOrEmpty(h.GorselUrl))
+                            {
+                                <div class="ilgili-image">
+                                    <img src="@h.GorselUrl" alt="@h.Baslik" loading="lazy" />
+                                </div>
+                            }
+                            <div class="ilgili-content">
+                                <h4>@h.Baslik</h4>
+                            </div>
+                        </a>
+                    }
+                </div>
+            </section>
+        }
+    </div>
+</article>

@@ -1,0 +1,92 @@
+@using Microsoft.AspNetCore.Http
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Yarım Kalanlar</title>
+    <link rel="icon" type="image/png" href="~/img/logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-top">
+            <div class="container header-top-inner">
+                <span class="header-date">@DateTime.Now.ToString("d MMMM yyyy dddd", new System.Globalization.CultureInfo("tr-TR"))</span>
+                <span class="header-slogan">Sessiz kalmayan her ses, yarım kalan bir hikâyeyi tamamlar</span>
+            </div>
+        </div>
+        <div class="header-main">
+            <div class="container header-main-inner">
+                <a href="/" class="logo">
+                    <img src="~/img/logo.png" alt="Yarım Kalanlar" class="logo-img" />
+                    <span class="logo-text">YARIM<small>KALANLAR</small></span>
+                </a>
+                <nav class="main-nav">
+                    <a asp-controller="Home" asp-action="Index">Ana Sayfa</a>
+                    <a asp-controller="Home" asp-action="Misyon">Misyonumuz</a>
+                </nav>
+                @{
+                    var girisYapildi = Context.Session.GetString("AdminGirisYapti") == "true";
+                }
+                @if (girisYapildi)
+                {
+                    <div class="header-admin">
+                        <a asp-controller="Admin" asp-action="Panel" class="admin-link">Panel</a>
+                        <form asp-controller="Admin" asp-action="Logout" method="post" class="logout-form">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="logout-btn">Çıkış</button>
+                        </form>
+                    </div>
+                }
+                else
+                {
+                    <a asp-controller="Admin" asp-action="Login" class="admin-login-link">Yönetici Girişi</a>
+                }
+            </div>
+        </div>
+    </header>
+
+    <main class="site-main">
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="footer-logo">
+                        <img src="~/img/logo.png" alt="Yarım Kalanlar" />
+                        <h4>Yarım Kalanlar</h4>
+                    </div>
+                    <p>Toplumsal duyarlılık temelinde, kadına yönelik şiddetle mücadeleyi gündemde tutmak için yayın yapan bağımsız bir haber platformudur.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Acil Yardım Hatları</h4>
+                    <ul>
+                        <li><strong>155</strong> — Polis İmdat</li>
+                        <li><strong>183</strong> — Alo Sosyal Destek</li>
+                        <li><strong>KADES</strong> — Kadın Destek Uygulaması</li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Bağlantılar</h4>
+                    <ul>
+                        <li><a asp-controller="Home" asp-action="Index">Ana Sayfa</a></li>
+                        <li><a asp-controller="Home" asp-action="Misyon">Misyonumuz</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>© @DateTime.Now.Year Yarım Kalanlar. Tüm hakları saklıdır.</span>
+                <span>Şiddete maruz kaldıysanız ya da tanık olduysanız: <strong>155</strong></span>
+            </div>
+        </div>
+    </footer>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

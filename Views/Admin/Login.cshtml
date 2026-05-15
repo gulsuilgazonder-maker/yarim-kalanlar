@@ -1,0 +1,39 @@
+@model YarimKalanlar.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Yönetici Girişi";
+}
+
+<section class="login-section">
+    <div class="login-kart">
+        <div class="login-header">
+            <span class="login-mark">
+                <img src="~/img/logo.png" alt="Yarım Kalanlar" />
+            </span>
+            <h2>Yönetici Girişi</h2>
+            <p>Devam etmek için kullanıcı bilgilerinizi giriniz.</p>
+        </div>
+
+        <form asp-action="Login" method="post" class="login-form">
+            @Html.AntiForgeryToken()
+
+            @if (!string.IsNullOrEmpty(Model.Hata))
+            {
+                <div class="form-hata">@Model.Hata</div>
+            }
+
+            <div class="form-grup">
+                <label asp-for="Username">Kullanıcı Adı</label>
+                <input asp-for="Username" autocomplete="username" required />
+            </div>
+
+            <div class="form-grup">
+                <label asp-for="Password">Şifre</label>
+                <input asp-for="Password" type="password" autocomplete="current-password" required />
+            </div>
+
+            <button type="submit" class="form-btn">Giriş Yap</button>
+
+            <a asp-controller="Home" asp-action="Index" class="form-geri">← Ana sayfaya dön</a>
+        </form>
+    </div>
+</section>

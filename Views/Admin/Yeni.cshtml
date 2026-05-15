@@ -1,0 +1,84 @@
+@model YarimKalanlar.Models.Haber
+@{
+    ViewData["Title"] = "Yeni Haber";
+}
+
+<section class="container form-section">
+    <div class="form-header">
+        <h1>Yeni Haber</h1>
+        <a asp-action="Panel" class="form-geri">← Panele Dön</a>
+    </div>
+
+    <form asp-action="Yeni" method="post" enctype="multipart/form-data" class="haber-form">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Kategori" value="Haber" />
+
+        <div asp-validation-summary="ModelOnly" class="form-hata"></div>
+
+        <div class="form-grup">
+            <label asp-for="Baslik">Başlık</label>
+            <input asp-for="Baslik" placeholder="Haber başlığı" required />
+            <span asp-validation-for="Baslik" class="form-uyari"></span>
+        </div>
+
+        <div class="form-grup">
+            <label asp-for="Spot">Spot</label>
+            <textarea asp-for="Spot" rows="2" placeholder="Kısa açıklama (özet)" required></textarea>
+            <span asp-validation-for="Spot" class="form-uyari"></span>
+        </div>
+
+        <div class="form-grup">
+            <label asp-for="Icerik">İçerik</label>
+            <textarea asp-for="Icerik" rows="12" placeholder="Haber metnini paragraflar halinde yazın..." required></textarea>
+            <span asp-validation-for="Icerik" class="form-uyari"></span>
+        </div>
+
+        <div class="form-grup">
+            <label asp-for="Yazar">Yazar</label>
+            <input asp-for="Yazar" />
+        </div>
+
+        <div class="form-grup">
+            <label for="gorselDosya">Haber Görseli</label>
+            <div class="dosya-yukle">
+                <input type="file" id="gorselDosya" name="gorselDosya" accept="image/png, image/jpeg, image/gif, image/webp" />
+                <div id="onIzlemeAlani" class="on-izleme" style="display:none;">
+                    <img id="onIzleme" src="" alt="Önizleme" />
+                    <button type="button" id="kaldirBtn" class="btn-mini">Kaldır</button>
+                </div>
+            </div>
+            <small class="form-yardim">JPG, PNG, GIF veya WebP — Maksimum 5MB</small>
+            <span asp-validation-for="GorselUrl" class="form-uyari"></span>
+        </div>
+
+        <div class="form-aksiyon">
+            <button type="submit" class="form-btn">Haberi Yayımla</button>
+            <a asp-action="Panel" class="btn-iptal">Vazgeç</a>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <script>
+        const input = document.getElementById('gorselDosya');
+        const onIzleme = document.getElementById('onIzleme');
+        const alan = document.getElementById('onIzlemeAlani');
+        const kaldir = document.getElementById('kaldirBtn');
+
+        input.addEventListener('change', (e) => {
+            const dosya = e.target.files[0];
+            if (!dosya) { alan.style.display = 'none'; return; }
+            const okuyucu = new FileReader();
+            okuyucu.onload = (ev) => {
+                onIzleme.src = ev.target.result;
+                alan.style.display = 'flex';
+            };
+            okuyucu.readAsDataURL(dosya);
+        });
+
+        kaldir.addEventListener('click', () => {
+            input.value = '';
+            alan.style.display = 'none';
+        });
+    </script>
+}

@@ -1,0 +1,143 @@
+@model HaberListeViewModel
+@{
+    ViewData["Title"] = "Ana Sayfa";
+    var mansetHaber = Model.Haberler.FirstOrDefault();
+    var digerHaberler = Model.Haberler.Skip(1).ToList();
+}
+
+<section class="container hero-section">
+    @if (mansetHaber != null && Model.MevcutSayfa == 1)
+    {
+        <article class="manset">
+            <a asp-controller="Haber" asp-action="Detay" asp-route-id="@mansetHaber.Id" class="manset-link">
+                <div class="manset-image">
+                    @if (!string.IsNullOrEmpty(mansetHaber.GorselUrl))
+                    {
+                        <img src="@mansetHaber.GorselUrl" alt="@mansetHaber.Baslik" />
+                    }
+                </div>
+                <div class="manset-content">
+                    <h2 class="manset-baslik">@mansetHaber.Baslik</h2>
+                    <p class="manset-spot">@mansetHaber.Spot</p>
+                    <div class="manset-meta">
+                        <span>@mansetHaber.Yazar</span>
+                        <span class="dot">•</span>
+                        <span>@mansetHaber.YayinTarihi.ToString("d MMMM yyyy, HH:mm", new System.Globalization.CultureInfo("tr-TR"))</span>
+                    </div>
+                </div>
+            </a>
+        </article>
+    }
+
+    @if (digerHaberler.Any() || (Model.MevcutSayfa > 1 && Model.Haberler.Any()))
+    {
+        var listeHaberler = (Model.MevcutSayfa == 1 ? digerHaberler : Model.Haberler);
+        var ortaNokta = listeHaberler.Count / 2;
+        <div class="haber-grid">
+            @for (int i = 0; i < listeHaberler.Count; i++)
+            {
+                if (i == ortaNokta)
+                {
+                    <aside class="anma-karesi" aria-label="Anma">
+                        <div class="anma-icerik">
+                            <span class="anma-ust-cizgi"></span>
+                            <p class="anma-yazi">Bu alan, faili meçhul bırakılan hayatlara ayrılmıştır.</p>
+                            <span class="anma-alt-cizgi"></span>
+                        </div>
+                    </aside>
+                }
+                var haber = listeHaberler[i];
+                <article class="haber-kart">
+                    <a asp-controller="Haber" asp-action="Detay" asp-route-id="@haber.Id" class="haber-kart-link">
+                        <div class="haber-kart-image">
+                            @if (!string.IsNullOrEmpty(haber.GorselUrl))
+                            {
+                                <img src="@haber.GorselUrl" alt="@haber.Baslik" loading="lazy" />
+                            }
+                        </div>
+                        <div class="haber-kart-content">
+                            <h3 class="haber-kart-baslik">@haber.Baslik</h3>
+                            <p class="haber-kart-spot">@haber.Spot</p>
+                            <div class="haber-kart-meta">
+                                <span>@haber.Yazar</span>
+                                <span class="dot">•</span>
+                                <span>@haber.YayinTarihi.ToString("d MMM, HH:mm", new System.Globalization.CultureInfo("tr-TR"))</span>
+                            </div>
+                        </div>
+                    </a>
+                </article>
+            }
+        </div>
+    }
+    else if (!Model.Haberler.Any())
+    {
+        <div class="bos-durum">
+            <p>Henüz haber bulunmuyor.</p>
+        </div>
+    }
+
+    @if (Model.ToplamSayfa > 1)
+    {
+        <nav class="pagination" aria-label="Sayfalama">
+            @if (Model.OncekiVar)
+            {
+                <a asp-action="Index"
+                   asp-route-sayfa="@(Model.MevcutSayfa - 1)"
+                   asp-route-kategori="@Model.Kategori"
+                   class="pagination-btn">
+                    ← Önceki
+                </a>
+            }
+            else
+            {
+                <span class="pagination-btn disabled">← Önceki</span>
+            }
+
+            <div class="pagination-pages">
+                @{
+                    int baslangic = Math.Max(1, Model.MevcutSayfa - 2);
+                    int bitis = Math.Min(Model.ToplamSayfa, Model.MevcutSayfa + 2);
+                }
+                @if (baslangic > 1)
+                {
+                    <a asp-action="Index" asp-route-sayfa="1" asp-route-kategori="@Model.Kategori" class="pagination-page">1</a>
+                    @if (baslangic > 2) { <span class="pagination-dots">…</span> }
+                }
+                @for (int i = baslangic; i <= bitis; i++)
+                {
+                    if (i == Model.MevcutSayfa)
+                    {
+                        <span class="pagination-page active">@i</span>
+                    }
+                    else
+                    {
+                        <a asp-action="Index" asp-route-sayfa="@i" asp-route-kategori="@Model.Kategori" class="pagination-page">@i</a>
+                    }
+                }
+                @if (bitis < Model.ToplamSayfa)
+                {
+                    @if (bitis < Model.ToplamSayfa - 1) { <span class="pagination-dots">…</span> }
+                    <a asp-action="Index" asp-route-sayfa="@Model.ToplamSayfa" asp-route-kategori="@Model.Kategori" class="pagination-page">@Model.ToplamSayfa</a>
+                }
+            </div>
+
+            @if (Model.SonrakiVar)
+            {
+                <a asp-action="Index"
+                   asp-route-sayfa="@(Model.MevcutSayfa + 1)"
+                   asp-route-kategori="@Model.Kategori"
+                   class="pagination-btn">
+                    Sonraki →
+                </a>
+            }
+            else
+            {
+                <span class="pagination-btn disabled">Sonraki →</span>
+            }
+        </nav>
+
+        <p class="pagination-info">
+            Sayfa @Model.MevcutSayfa / @Model.ToplamSayfa &nbsp; · &nbsp; Toplam @Model.ToplamHaber haber
+        </p>
+    }
+</section>
