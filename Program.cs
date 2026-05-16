@@ -155,7 +155,7 @@ app.UseForwardedHeaders(new Microsoft.AspNetCore.Builder.ForwardedHeadersOptions
 {
     ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor
                      | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto,
-    KnownNetworks = { },
+    KnownIPNetworks = { },
     KnownProxies = { }
 });
 

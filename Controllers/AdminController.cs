@@ -126,7 +126,7 @@ public class AdminController : Controller
         if (!tamHedefYolu.StartsWith(tamUploadsYolu + Path.DirectorySeparatorChar, StringComparison.Ordinal))
             throw new InvalidOperationException("Geçersiz dosya yolu.");
 
-        await File.WriteAllBytesAsync(tamYol, dosyaBytes);
+        await System.IO.File.WriteAllBytesAsync(tamYol, dosyaBytes);
         return $"/uploads/{yeniAd}";
     }
 
