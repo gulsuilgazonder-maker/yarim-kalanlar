@@ -7,7 +7,6 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// MVC + global anti-forgery
 builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
@@ -21,16 +20,12 @@ builder.Services.AddAntiforgery(options =>
 });
 
 // ============ VERİTABANI ============
-// Render'da DATABASE_URL env değişkeni varsa PostgreSQL kullan (kalıcı veri)
-// Yoksa SQLite kullan (yerel geliştirme)
 var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     if (!string.IsNullOrEmpty(databaseUrl))
     {
-        // Render'ın "postgres://user:pass@host:port/db" URL formatını
-        // Npgsql'in beklediği formatına çevir
         var npgsqlConnStr = DatabaseUrlToNpgsql(databaseUrl);
         options.UseNpgsql(npgsqlConnStr);
     }
@@ -41,16 +36,52 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     }
 });
 
-// Render URL formatından Npgsql connection string'e dönüştürme
+// DATABASE_URL parser - port yoksa 5432 varsayar, hata mesajları açık.
 static string DatabaseUrlToNpgsql(string url)
 {
-    var uri = new Uri(url);
-    var userInfo = uri.UserInfo.Split(':');
-    return $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};" +
-           $"Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+    // Zaten key-value formatındaysa olduğu gibi döndür
+    if (url.Contains("Host=", StringComparison.OrdinalIgnoreCase) ||
+        url.Contains("Server=", StringComparison.OrdinalIgnoreCase))
+    {
+        return url;
+    }
+
+    // postgres:// → postgresql:// normalize
+    if (url.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+    {
+        url = "postgresql://" + url.Substring("postgres://".Length);
+    }
+
+    Uri uri;
+    try
+    {
+        uri = new Uri(url);
+    }
+    catch (Exception ex)
+    {
+        throw new InvalidOperationException(
+            $"DATABASE_URL parse edilemedi. Beklenen format: postgresql://user:pass@host:port/dbname. Hata: {ex.Message}");
+    }
+
+    var userInfo = uri.UserInfo.Split(':', 2);
+    var username = userInfo.Length > 0 ? Uri.UnescapeDataString(userInfo[0]) : "";
+    var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
+
+    // Port belirtilmemişse PostgreSQL varsayılan 5432 kullan
+    var port = uri.Port > 0 ? uri.Port : 5432;
+    var host = uri.Host;
+    var database = uri.AbsolutePath.TrimStart('/');
+
+    if (string.IsNullOrEmpty(host))
+        throw new InvalidOperationException("DATABASE_URL içinde host bulunamadı.");
+    if (string.IsNullOrEmpty(database))
+        throw new InvalidOperationException("DATABASE_URL içinde veritabanı adı bulunamadı.");
+
+    return $"Host={host};Port={port};Database={database};" +
+           $"Username={username};Password={password};" +
+           $"SSL Mode=Require;Trust Server Certificate=true";
 }
 
-// Session
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -64,7 +95,6 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddHttpContextAccessor();
 
-// Rate Limiting
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = 429;
@@ -118,18 +148,14 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// ============ PROXY HEADER'LARI (Render arkasında olduğu için) ============
-// Render bizi nginx proxy arkasından servis ediyor. HTTPS bilgisi proxy'den geliyor.
 app.UseForwardedHeaders(new Microsoft.AspNetCore.Builder.ForwardedHeadersOptions
 {
     ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor
                      | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto,
-    // Render proxy'sinin tüm IP'lerine güveniyoruz
     KnownNetworks = { },
     KnownProxies = { }
 });
 
-// Security Headers
 app.Use(async (context, next) =>
 {
     context.Response.Headers["X-Content-Type-Options"] = "nosniff";
@@ -149,9 +175,6 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// Render arkasında HTTPS termination olduğu için UseHttpsRedirection'ı kaldırdık
-// (X-Forwarded-Proto header'ı zaten doğru protokolü iletecek)
-
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -163,12 +186,20 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Veritabanını oluştur ve seed et
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated();
-    DbSeeder.Seed(db);
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.EnsureCreated();
+        DbSeeder.Seed(db);
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Veritabanı oluşturulurken hata. DATABASE_URL doğru mu?");
+        throw;
+    }
 }
 
 app.Run();
