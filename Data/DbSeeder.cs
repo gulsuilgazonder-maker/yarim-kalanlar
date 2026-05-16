@@ -18,7 +18,7 @@ public static class DbSeeder
                 Yazar = "Haber Merkezi",
                 Kategori = "Gündem",
                 GorselUrl = "https://images.unsplash.com/photo-1591522810850-58128c5fb089?w=800",
-                YayinTarihi = DateTime.Now.AddHours(-2),
+                YayinTarihi = DateTime.UtcNow.AddHours(-2),
                 Goruntulenme = 1247
             },
             new()
@@ -29,7 +29,7 @@ public static class DbSeeder
                 Yazar = "Mehmet Aydın",
                 Kategori = "Hukuk",
                 GorselUrl = "https://images.unsplash.com/photo-1589994965851-a8f479c573a9?w=800",
-                YayinTarihi = DateTime.Now.AddHours(-5),
+                YayinTarihi = DateTime.UtcNow.AddHours(-5),
                 Goruntulenme = 892
             },
             new()
@@ -40,7 +40,7 @@ public static class DbSeeder
                 Yazar = "Ayşe Demirci",
                 Kategori = "Sosyal",
                 GorselUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=800",
-                YayinTarihi = DateTime.Now.AddHours(-8),
+                YayinTarihi = DateTime.UtcNow.AddHours(-8),
                 Goruntulenme = 654
             },
             new()
@@ -51,7 +51,7 @@ public static class DbSeeder
                 Yazar = "Selin Karaca",
                 Kategori = "Hukuk",
                 GorselUrl = "https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=800",
-                YayinTarihi = DateTime.Now.AddDays(-1),
+                YayinTarihi = DateTime.UtcNow.AddDays(-1),
                 Goruntulenme = 2103
             },
             new()
@@ -62,7 +62,7 @@ public static class DbSeeder
                 Yazar = "Burak Yılmaz",
                 Kategori = "Eğitim",
                 GorselUrl = "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800",
-                YayinTarihi = DateTime.Now.AddDays(-1).AddHours(-3),
+                YayinTarihi = DateTime.UtcNow.AddDays(-1).AddHours(-3),
                 Goruntulenme = 478
             },
             new()
@@ -73,7 +73,7 @@ public static class DbSeeder
                 Yazar = "Haber Merkezi",
                 Kategori = "Hukuk",
                 GorselUrl = "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800",
-                YayinTarihi = DateTime.Now.AddDays(-2),
+                YayinTarihi = DateTime.UtcNow.AddDays(-2),
                 Goruntulenme = 1567
             },
             new()
@@ -84,7 +84,7 @@ public static class DbSeeder
                 Yazar = "Mehmet Aydın",
                 Kategori = "Sosyal",
                 GorselUrl = "https://images.unsplash.com/photo-1517433367423-c7e5b0f35086?w=800",
-                YayinTarihi = DateTime.Now.AddDays(-2).AddHours(-5),
+                YayinTarihi = DateTime.UtcNow.AddDays(-2).AddHours(-5),
                 Goruntulenme = 723
             },
             new()
@@ -95,7 +95,7 @@ public static class DbSeeder
                 Yazar = "Selin Karaca",
                 Kategori = "Sağlık",
                 GorselUrl = "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800",
-                YayinTarihi = DateTime.Now.AddDays(-3),
+                YayinTarihi = DateTime.UtcNow.AddDays(-3),
                 Goruntulenme = 956
             },
             new()
@@ -106,7 +106,7 @@ public static class DbSeeder
                 Yazar = "Burak Yılmaz",
                 Kategori = "Eğitim",
                 GorselUrl = "https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=800",
-                YayinTarihi = DateTime.Now.AddDays(-3).AddHours(-4),
+                YayinTarihi = DateTime.UtcNow.AddDays(-3).AddHours(-4),
                 Goruntulenme = 612
             },
             new()
@@ -117,7 +117,7 @@ public static class DbSeeder
                 Yazar = "Ayşe Demirci",
                 Kategori = "Gündem",
                 GorselUrl = "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800",
-                YayinTarihi = DateTime.Now.AddDays(-4),
+                YayinTarihi = DateTime.UtcNow.AddDays(-4),
                 Goruntulenme = 1834
             },
             new()
@@ -128,7 +128,7 @@ public static class DbSeeder
                 Yazar = "Haber Merkezi",
                 Kategori = "Medya",
                 GorselUrl = "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800",
-                YayinTarihi = DateTime.Now.AddDays(-5),
+                YayinTarihi = DateTime.UtcNow.AddDays(-5),
                 Goruntulenme = 389
             },
             new()
@@ -139,7 +139,7 @@ public static class DbSeeder
                 Yazar = "Selin Karaca",
                 Kategori = "Araştırma",
                 GorselUrl = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800",
-                YayinTarihi = DateTime.Now.AddDays(-6),
+                YayinTarihi = DateTime.UtcNow.AddDays(-6),
                 Goruntulenme = 521
             }
         };

@@ -22,7 +22,7 @@
                     <div class="manset-meta">
                         <span>@mansetHaber.Yazar</span>
                         <span class="dot">•</span>
-                        <span>@mansetHaber.YayinTarihi.ToString("d MMMM yyyy, HH:mm", new System.Globalization.CultureInfo("tr-TR"))</span>
+                        <span>@mansetHaber.YayinTarihi.TrUzun()</span>
                     </div>
                 </div>
             </a>
@@ -61,7 +61,7 @@
                             <div class="haber-kart-meta">
                                 <span>@haber.Yazar</span>
                                 <span class="dot">•</span>
-                                <span>@haber.YayinTarihi.ToString("d MMM, HH:mm", new System.Globalization.CultureInfo("tr-TR"))</span>
+                                <span>@haber.YayinTarihi.TrKisa()</span>
                             </div>
                         </div>
                     </a>

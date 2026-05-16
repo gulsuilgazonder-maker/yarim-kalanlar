@@ -34,7 +34,7 @@
                             </a>
                         </td>
                         <td>@h.Yazar</td>
-                        <td>@h.YayinTarihi.ToString("d MMM yyyy", new System.Globalization.CultureInfo("tr-TR"))</td>
+                        <td>@h.YayinTarihi.TrSadeceTarih()</td>
                         <td>@h.Goruntulenme</td>
                         <td class="tablo-islem">
                             <a asp-action="Duzenle" asp-route-id="@h.Id" class="btn-mini">Düzenle</a>

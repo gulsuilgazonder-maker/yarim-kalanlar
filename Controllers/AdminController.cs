@@ -271,7 +271,7 @@ public class AdminController : Controller
         model.Yazar = string.IsNullOrWhiteSpace(model.Yazar) ? MevcutAdSoyad() : model.Yazar.Trim();
         model.Kategori = (model.Kategori ?? "Gündem").Trim();
 
-        model.YayinTarihi = DateTime.Now;
+        model.YayinTarihi = DateTime.UtcNow;
         model.Goruntulenme = 0;
 
         _db.Haberler.Add(model);

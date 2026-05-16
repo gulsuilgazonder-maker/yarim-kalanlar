@@ -21,7 +21,7 @@
                     <span class="meta-avatar">@Model.Yazar.Substring(0, 1).ToUpper()</span>
                     <div>
                         <strong>@Model.Yazar</strong>
-                        <small>@Model.YayinTarihi.ToString("d MMMM yyyy, HH:mm", new System.Globalization.CultureInfo("tr-TR"))</small>
+                        <small>@Model.YayinTarihi.TrUzun()</small>
                     </div>
                 </div>
                 <div class="meta-stats">
