@@ -1677,3 +1677,282 @@ img {
     color: var(--gri-500);
     font-weight: 500;
 }
+
+/* ============ MOBİL DÜZELTMELER (Güçlendirilmiş) ============ */
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 16px;
+    }
+
+    /* HEADER */
+    .header-main-inner {
+        padding: 14px 16px;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .logo {
+        gap: 10px;
+    }
+
+    .logo-img {
+        width: 40px;
+        height: 40px;
+    }
+
+    .logo-text {
+        font-size: 18px;
+    }
+
+    .logo-text small {
+        font-size: 9px;
+        letter-spacing: 2px;
+    }
+
+    .main-nav {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        gap: 4px;
+        padding-top: 8px;
+        border-top: 1px solid var(--gri-200);
+    }
+
+    .main-nav a {
+        font-size: 13px;
+        padding: 8px 12px;
+    }
+
+    .admin-login-link,
+    .admin-link {
+        font-size: 12px;
+        padding: 8px 12px;
+    }
+
+    .header-top-inner {
+        flex-direction: column;
+        gap: 4px;
+        padding: 6px 16px;
+        text-align: center;
+    }
+
+    .header-slogan {
+        display: block;
+        font-size: 11px;
+    }
+
+    /* ANA SAYFA - MANŞET */
+    .site-main {
+        padding: 20px 0 40px;
+    }
+
+    .manset {
+        margin-bottom: 28px;
+    }
+
+    .manset-link {
+        grid-template-columns: 1fr;
+        min-height: auto;
+    }
+
+    .manset-image {
+        aspect-ratio: 16/10;
+    }
+
+    .manset-content {
+        padding: 24px 20px;
+    }
+
+    .manset-baslik {
+        font-size: 1.5rem;
+    }
+
+    .manset-spot {
+        font-size: 1rem;
+    }
+
+    /* HABER GRİDİ */
+    .haber-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        margin-bottom: 32px;
+    }
+
+    .haber-kart-content {
+        padding: 18px 16px 16px;
+    }
+
+    .haber-kart-baslik {
+        font-size: 1.15rem;
+    }
+
+    /* ANMA KARESİ */
+    .anma-karesi {
+        aspect-ratio: 16/10;
+    }
+
+    .anma-yazi {
+        font-size: 1rem;
+    }
+
+    /* DETAY SAYFASI */
+    .detay-baslik {
+        font-size: 1.7rem !important;
+    }
+
+    .detay-spot {
+        font-size: 1.05rem;
+        padding-left: 14px;
+    }
+
+    .detay-icerik {
+        font-size: 1.02rem;
+        line-height: 1.7;
+    }
+
+    .detay-icerik p:first-child::first-letter {
+        font-size: 3rem;
+    }
+
+    .detay-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    /* MİSYON SAYFASI */
+    .misyon-section {
+        padding: 20px 16px 32px;
+    }
+
+    .misyon-header {
+        margin-bottom: 32px;
+        padding-bottom: 24px;
+    }
+
+    .misyon-baslik {
+        font-size: 2rem;
+    }
+
+    .misyon-spot {
+        font-size: 1.05rem;
+        padding: 20px 18px;
+        margin-bottom: 32px;
+    }
+
+    .misyon-icerik {
+        font-size: 1.02rem;
+        line-height: 1.75;
+    }
+
+    .misyon-icerik h2 {
+        font-size: 1.4rem;
+        margin-top: 32px;
+    }
+
+    .misyon-liste li {
+        padding: 14px 16px 14px 44px;
+        font-size: 0.96rem;
+    }
+
+    .misyon-liste li::before {
+        left: 16px;
+        top: 22px;
+    }
+
+    .misyon-imza {
+        font-size: 1.1rem !important;
+        padding: 24px 16px;
+    }
+
+    /* FOOTER */
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+        gap: 8px;
+    }
+
+    /* ADMİN */
+    .admin-tablo {
+        font-size: 13px;
+    }
+
+    .admin-tablo th,
+    .admin-tablo td {
+        padding: 10px 8px;
+    }
+
+    .form-section,
+    .form-header {
+        padding: 0 4px;
+    }
+
+    .form-satir {
+        grid-template-columns: 1fr;
+    }
+
+    .login-kart {
+        padding: 32px 24px;
+        margin: 0 12px;
+    }
+
+    /* PAGINATION */
+    .pagination {
+        gap: 4px;
+    }
+
+    .pagination-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    .pagination-page {
+        padding: 7px 10px;
+        font-size: 12px;
+        min-width: 32px;
+    }
+
+    /* ACİL YARDIM KUTUSU */
+    .acil-numaralar {
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+
+/* Çok küçük ekranlar (telefon dik) */
+@media (max-width: 400px) {
+    .logo-text {
+        font-size: 16px;
+    }
+
+    .logo-text small {
+        display: none;
+    }
+
+    .header-main-inner {
+        padding: 12px 12px;
+    }
+
+    .main-nav a {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+
+    .manset-baslik {
+        font-size: 1.3rem;
+    }
+
+    .detay-baslik {
+        font-size: 1.4rem !important;
+    }
+
+    .misyon-baslik {
+        font-size: 1.75rem;
+    }
+}

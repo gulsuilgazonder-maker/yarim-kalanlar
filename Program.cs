@@ -7,13 +7,12 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// MVC + global anti-forgery (her POST otomatik korumalı)
+// MVC + global anti-forgery
 builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
 });
 
-// Anti-forgery cookie ayarları
 builder.Services.AddAntiforgery(options =>
 {
     options.Cookie.HttpOnly = true;
@@ -21,12 +20,37 @@ builder.Services.AddAntiforgery(options =>
     options.Cookie.SameSite = SameSiteMode.Strict;
 });
 
-// Veritabanı
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")
-        ?? "Data Source=habersitesi.db"));
+// ============ VERİTABANI ============
+// Render'da DATABASE_URL env değişkeni varsa PostgreSQL kullan (kalıcı veri)
+// Yoksa SQLite kullan (yerel geliştirme)
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
-// Session - güvenli cookie ayarları
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    if (!string.IsNullOrEmpty(databaseUrl))
+    {
+        // Render'ın "postgres://user:pass@host:port/db" URL formatını
+        // Npgsql'in beklediği formatına çevir
+        var npgsqlConnStr = DatabaseUrlToNpgsql(databaseUrl);
+        options.UseNpgsql(npgsqlConnStr);
+    }
+    else
+    {
+        options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")
+            ?? "Data Source=habersitesi.db");
+    }
+});
+
+// Render URL formatından Npgsql connection string'e dönüştürme
+static string DatabaseUrlToNpgsql(string url)
+{
+    var uri = new Uri(url);
+    var userInfo = uri.UserInfo.Split(':');
+    return $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};" +
+           $"Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+}
+
+// Session
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -40,12 +64,11 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddHttpContextAccessor();
 
-// Rate Limiting - brute force koruması
+// Rate Limiting
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = 429;
 
-    // Login endpoint için: 5 deneme / dakika / IP
     options.AddPolicy("LoginPolicy", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "anon",
@@ -56,7 +79,6 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             }));
 
-    // Dosya yüklemeli endpoint'ler için: 20 / dakika / IP
     options.AddPolicy("UploadPolicy", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "anon",
@@ -67,7 +89,6 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             }));
 
-    // Genel istek limiti: 200 / dakika / IP
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "anon",
@@ -79,7 +100,6 @@ builder.Services.AddRateLimiter(options =>
             }));
 });
 
-// Dosya yükleme boyutu sınırı (5MB)
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
 {
     options.MultipartBodyLengthLimit = 5 * 1024 * 1024;
@@ -98,14 +118,24 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Security Headers - production ve dev'de aktif
+// ============ PROXY HEADER'LARI (Render arkasında olduğu için) ============
+// Render bizi nginx proxy arkasından servis ediyor. HTTPS bilgisi proxy'den geliyor.
+app.UseForwardedHeaders(new Microsoft.AspNetCore.Builder.ForwardedHeadersOptions
+{
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor
+                     | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto,
+    // Render proxy'sinin tüm IP'lerine güveniyoruz
+    KnownNetworks = { },
+    KnownProxies = { }
+});
+
+// Security Headers
 app.Use(async (context, next) =>
 {
     context.Response.Headers["X-Content-Type-Options"] = "nosniff";
     context.Response.Headers["X-Frame-Options"] = "DENY";
     context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
     context.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
-    // Content-Security-Policy - Google Fonts ve kendi domainimiz için
     context.Response.Headers["Content-Security-Policy"] =
         "default-src 'self'; " +
         "script-src 'self' 'unsafe-inline'; " +
@@ -119,7 +149,9 @@ app.Use(async (context, next) =>
     await next();
 });
 
-app.UseHttpsRedirection();
+// Render arkasında HTTPS termination olduğu için UseHttpsRedirection'ı kaldırdık
+// (X-Forwarded-Proto header'ı zaten doğru protokolü iletecek)
+
 app.UseStaticFiles();
 
 app.UseRouting();
