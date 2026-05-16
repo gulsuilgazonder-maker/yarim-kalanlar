@@ -95,6 +95,9 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddHttpContextAccessor();
 
+// Cloudinary - görsel saklama
+builder.Services.AddSingleton<YarimKalanlar.Services.IGorselSaklayicisi, YarimKalanlar.Services.CloudinaryGorselSaklayicisi>();
+
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = 429;

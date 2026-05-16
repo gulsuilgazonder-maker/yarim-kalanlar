@@ -1,6 +1,7 @@
 using YarimKalanlar.Data;
 using YarimKalanlar.Filters;
 using YarimKalanlar.Models;
+using YarimKalanlar.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,7 @@ public class AdminController : Controller
     private readonly IConfiguration _config;
     private readonly IWebHostEnvironment _env;
     private readonly ILogger<AdminController> _logger;
+    private readonly IGorselSaklayicisi _gorselSaklayicisi;
 
     private const string SessionGiris = "AdminGirisYapti";
     private const string SessionKullanici = "AdminKullaniciAdi";
@@ -32,12 +34,14 @@ public class AdminController : Controller
         [".webp"] = new[] { new byte[] { 0x52, 0x49, 0x46, 0x46 } } // RIFF (WebP container)
     };
 
-    public AdminController(AppDbContext db, IConfiguration config, IWebHostEnvironment env, ILogger<AdminController> logger)
+    public AdminController(AppDbContext db, IConfiguration config, IWebHostEnvironment env,
+        ILogger<AdminController> logger, IGorselSaklayicisi gorselSaklayicisi)
     {
         _db = db;
         _config = config;
         _env = env;
         _logger = logger;
+        _gorselSaklayicisi = gorselSaklayicisi;
     }
 
     private class EditorBilgi
@@ -84,56 +88,68 @@ public class AdminController : Controller
             throw new InvalidOperationException("Yalnızca görsel dosyaları yüklenebilir.");
 
         // 4. Magic byte (dosyanın gerçek içeriği) kontrolü - en kritik
+        // Stream'i memory'e alıp hem doğrulama hem upload için kullanacağız
+        byte[] dosyaBytes;
         await using (var bakStream = dosya.OpenReadStream())
         {
-            var ilkBytlar = new byte[12];
-            var okunan = await bakStream.ReadAsync(ilkBytlar, 0, ilkBytlar.Length);
-
-            var imzalar = IzinliDosyaImzalari[uzanti];
-            bool gecerliImza = imzalar.Any(imza =>
-                okunan >= imza.Length && ilkBytlar.Take(imza.Length).SequenceEqual(imza));
-
-            if (!gecerliImza)
-                throw new InvalidOperationException("Dosyanın içeriği uzantısıyla eşleşmiyor.");
+            using var memStream = new MemoryStream();
+            await bakStream.CopyToAsync(memStream);
+            dosyaBytes = memStream.ToArray();
         }
 
-        // 5. Güvenli klasör
+        var imzalar = IzinliDosyaImzalari[uzanti];
+        bool gecerliImza = imzalar.Any(imza =>
+            dosyaBytes.Length >= imza.Length && dosyaBytes.Take(imza.Length).SequenceEqual(imza));
+
+        if (!gecerliImza)
+            throw new InvalidOperationException("Dosyanın içeriği uzantısıyla eşleşmiyor.");
+
+        // 5. Yükleme: Cloudinary varsa orada, yoksa yerel diske (geliştirme için)
+        if (_gorselSaklayicisi.Yapilandirildi)
+        {
+            using var uploadStream = new MemoryStream(dosyaBytes);
+            var cloudUrl = await _gorselSaklayicisi.YukleAsync(dosya, uploadStream);
+            _logger.LogInformation("Görsel Cloudinary'e yüklendi: {Url}", cloudUrl);
+            return cloudUrl;
+        }
+
+        // Yerel disk - sadece geliştirme ortamı için
         var uploadsKlasoru = Path.Combine(_env.WebRootPath, "uploads");
         if (!Directory.Exists(uploadsKlasoru))
             Directory.CreateDirectory(uploadsKlasoru);
 
-        // 6. Benzersiz, tahmin edilemez dosya adı (kullanıcı girdisi adı yok)
         var yeniAd = $"{Guid.NewGuid():N}{uzanti}";
         var tamYol = Path.Combine(uploadsKlasoru, yeniAd);
 
-        // Path traversal koruması - yol gerçekten uploads içinde mi?
         var tamUploadsYolu = Path.GetFullPath(uploadsKlasoru);
         var tamHedefYolu = Path.GetFullPath(tamYol);
         if (!tamHedefYolu.StartsWith(tamUploadsYolu + Path.DirectorySeparatorChar, StringComparison.Ordinal))
             throw new InvalidOperationException("Geçersiz dosya yolu.");
 
-        await using (var stream = new FileStream(tamYol, FileMode.CreateNew))
-        {
-            await dosya.CopyToAsync(stream);
-        }
-
+        await File.WriteAllBytesAsync(tamYol, dosyaBytes);
         return $"/uploads/{yeniAd}";
     }
 
-    private void EskiGorseliSil(string? gorselUrl)
+    private async Task EskiGorseliSilAsync(string? gorselUrl)
     {
         if (string.IsNullOrEmpty(gorselUrl)) return;
-        // Sadece kendi yüklediğimiz dosyaları siliyoruz, dış URL'lere dokunma
+
+        // Cloudinary URL'i ise oradan sil
+        if (gorselUrl.Contains("res.cloudinary.com", StringComparison.OrdinalIgnoreCase))
+        {
+            await _gorselSaklayicisi.SilAsync(gorselUrl);
+            return;
+        }
+
+        // Yerel /uploads altındaki dosyalar
         if (!gorselUrl.StartsWith("/uploads/", StringComparison.Ordinal)) return;
 
-        // Yol normalizasyonu - "../" gibi karakterler temizlenir
         var dosyaAdi = Path.GetFileName(gorselUrl);
         if (string.IsNullOrEmpty(dosyaAdi)) return;
 
         var uploadsKlasoru = Path.Combine(_env.WebRootPath, "uploads");
         var fizikselYol = Path.Combine(uploadsKlasoru, dosyaAdi);
 
-        // Yolun gerçekten uploads klasörünün içinde olduğunu doğrula
         var tamUploadsYolu = Path.GetFullPath(uploadsKlasoru);
         var tamFizikselYol = Path.GetFullPath(fizikselYol);
         if (!tamFizikselYol.StartsWith(tamUploadsYolu + Path.DirectorySeparatorChar, StringComparison.Ordinal))
@@ -312,12 +328,12 @@ public class AdminController : Controller
             var yeniYol = await GorselYukleAsync(gorselDosya);
             if (yeniYol != null)
             {
-                EskiGorseliSil(haber.GorselUrl);
+                await EskiGorseliSilAsync(haber.GorselUrl);
                 haber.GorselUrl = yeniYol;
             }
             else if (gorselSil)
             {
-                EskiGorseliSil(haber.GorselUrl);
+                await EskiGorseliSilAsync(haber.GorselUrl);
                 haber.GorselUrl = null;
             }
         }
@@ -339,7 +355,7 @@ public class AdminController : Controller
         var haber = await _db.Haberler.FindAsync(id);
         if (haber == null) return NotFound();
 
-        EskiGorseliSil(haber.GorselUrl);
+        await EskiGorseliSilAsync(haber.GorselUrl);
 
         _db.Haberler.Remove(haber);
         await _db.SaveChangesAsync();
